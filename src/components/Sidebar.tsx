@@ -7,12 +7,11 @@ interface Props {
   onSelect: (k: string) => void;
   query: string;               // remains for compatibility (unused)
   onQuery: (q: string) => void; // remains for compatibility (unused)
-
-  /** Optional: open mobile drawer (e.g. via header burger) */
-  mobileOpen?: boolean;
-  /** Optional: close drawer (overlay click etc.) */
-  onCloseMobile?: () => void;
+  mobileOpen?: boolean;        // open mobile drawer (e.g. via header burger)
+  onCloseMobile?: () => void;  // close drawer (overlay click etc.)
 }
+
+const SIDEBAR_W = 288;
 
 export default function Sidebar({
   categories,
@@ -23,18 +22,35 @@ export default function Sidebar({
   mobileOpen,
   onCloseMobile,
 }: Props) {
-  // === Breakpoint detection (md = 768px) ===
+  // md breakpoint
   const [isMdUp, setIsMdUp] = useState<boolean>(() =>
     typeof window !== "undefined" ? window.innerWidth >= 768 : true
   );
-
   useEffect(() => {
     const onResize = () => setIsMdUp(window.innerWidth >= 768);
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // === Categories (fallback) ===
+  // Header-Höhe messen (nur für paddingTop, NICHT für height/top)
+  const [headerH, setHeaderH] = useState<number>(0);
+  useEffect(() => {
+    const measure = () => {
+      const el = document.querySelector("header");
+      setHeaderH(el ? el.getBoundingClientRect().height : 0);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    const headerEl = document.querySelector("header");
+    if (ro && headerEl) ro.observe(headerEl);
+    return () => {
+      window.removeEventListener("resize", measure);
+      if (ro && headerEl) ro.unobserve(headerEl);
+    };
+  }, []);
+
+  // Fallback-Kategorien
   const fallbackCategories = useMemo(() => {
     const set = new Set(
       contracts.map((c) => c.category).filter((c): c is string => !!c && typeof c === "string")
@@ -45,21 +61,30 @@ export default function Sidebar({
   const visibleCategories =
     Array.isArray(categories) && categories.length > 0 ? categories : fallbackCategories;
 
-  // === Visibility: on mobile only when mobileOpen=true; on desktop always visible
+  // Sichtbarkeit
   const showAsDrawer = !isMdUp;
   const visible = isMdUp || !!mobileOpen;
-
   if (!visible) return null;
 
-  // === Styling (desktop vs drawer) ===
+  // Styles
   const asideBase: React.CSSProperties = {
-    width: 288,
+    width: SIDEBAR_W,
     display: "flex",
     flexDirection: "column",
     borderRight: isMdUp ? "1px solid rgba(0,0,0,.1)" : "none",
     background: "rgba(255,255,255,0.92)",
     backdropFilter: "blur(10px) saturate(160%)",
-    height: "100%",
+
+    // Desktop: fixiert, volle Höhe; Header liegt darüber
+    position: isMdUp ? "fixed" : undefined,
+    left: isMdUp ? 0 : undefined,
+    top: isMdUp ? 0 : undefined,              // ⬅️ am Viewport-Top
+    height: isMdUp ? "100dvh" : "100dvh",     // ⬅️ volle Bildschirmhöhe
+    overflowY: "auto",
+    zIndex: isMdUp ? 5 : undefined,           // Header sollte >5 sein (z.B. 10)
+
+    // ⬅️ Schiebt NUR den Inhalt unter den Header (ohne die Höhe zu kürzen)
+    paddingTop: isMdUp ? headerH : 0,
   };
 
   const drawerStyles: React.CSSProperties = showAsDrawer
@@ -69,6 +94,7 @@ export default function Sidebar({
         zIndex: 30,
         height: "100dvh",
         boxShadow: "0 10px 30px rgba(0,0,0,.2)",
+        paddingTop: 0, // Mobile-Drawer braucht kein Header-Offset
       }
     : {};
 
@@ -93,6 +119,9 @@ export default function Sidebar({
           style={overlayStyles}
         />
       )}
+
+      {/* Platzhalter: hält rechts Platz frei auf Desktop */}
+      {isMdUp && <div style={{ width: SIDEBAR_W, flex: "0 0 auto" }} aria-hidden />}
 
       <aside style={{ ...asideBase, ...drawerStyles }}>
         {/* --- Navigation --- */}
@@ -138,9 +167,7 @@ export default function Sidebar({
           )}
 
           {visibleCategories.length === 0 ? (
-            <div style={{ fontSize: 12, color: "#6b7280" }}>
-              No categories found.
-            </div>
+            <div style={{ fontSize: 12, color: "#6b7280" }}>No categories found.</div>
           ) : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {visibleCategories.map((key) => {
@@ -175,12 +202,10 @@ export default function Sidebar({
                       }}
                       style={baseBtn}
                       onMouseEnter={(e) => {
-                        if (!isActive)
-                          e.currentTarget.style.background = "rgba(0,0,0,0.03)";
+                        if (!isActive) e.currentTarget.style.background = "rgba(0,0,0,0.03)";
                       }}
                       onMouseLeave={(e) => {
-                        if (!isActive)
-                          e.currentTarget.style.background = "transparent";
+                        if (!isActive) e.currentTarget.style.background = "transparent";
                       }}
                     >
                       <span>{key}</span>
@@ -208,8 +233,7 @@ export default function Sidebar({
                     padding: "8px 12px",
                     borderRadius: 10,
                     border: "1px solid transparent",
-                    background:
-                      activeKey === "ABOUT" ? "rgba(0,0,0,0.05)" : "transparent",
+                    background: activeKey === "ABOUT" ? "rgba(0,0,0,0.05)" : "transparent",
                     fontSize: 14,
                     color: activeKey === "ABOUT" ? "#111" : "#374151",
                     cursor: "pointer",
