@@ -5,12 +5,12 @@ interface Props {
   categories: string[];
   activeKey: string;
   onSelect: (k: string) => void;
-  query: string;               // bleibt für Kompatibilität (nicht genutzt)
-  onQuery: (q: string) => void; // bleibt für Kompatibilität (nicht genutzt)
+  query: string;               // remains for compatibility (unused)
+  onQuery: (q: string) => void; // remains for compatibility (unused)
 
-  /** Optional: Mobile Drawer öffnen (z. B. via Header-Burger) */
+  /** Optional: open mobile drawer (e.g. via header burger) */
   mobileOpen?: boolean;
-  /** Optional: Drawer schließen (Overlay-Klick etc.) */
+  /** Optional: close drawer (overlay click etc.) */
   onCloseMobile?: () => void;
 }
 
@@ -18,13 +18,12 @@ export default function Sidebar({
   categories,
   activeKey,
   onSelect,
-  // ungenutzte Props bewusst entkoppelt
   query: _unusedQuery,
   onQuery: _unusedOnQuery,
   mobileOpen,
   onCloseMobile,
 }: Props) {
-  // === Breakpoint-Detection (md = 768px) ===
+  // === Breakpoint detection (md = 768px) ===
   const [isMdUp, setIsMdUp] = useState<boolean>(() =>
     typeof window !== "undefined" ? window.innerWidth >= 768 : true
   );
@@ -35,28 +34,24 @@ export default function Sidebar({
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // === Kategorien (Fallback) ===
+  // === Categories (fallback) ===
   const fallbackCategories = useMemo(() => {
     const set = new Set(
       contracts.map((c) => c.category).filter((c): c is string => !!c && typeof c === "string")
     );
-    return ["ALLE", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
+    return ["ALL", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
   }, []);
 
   const visibleCategories =
     Array.isArray(categories) && categories.length > 0 ? categories : fallbackCategories;
 
-  // === Sichtbarkeit: auf Mobile nur anzeigen, wenn mobileOpen true; auf Desktop immer anzeigen
-  const showAsDrawer = !isMdUp;             // Mobile-Modus
-  const visible = isMdUp || !!mobileOpen;   // Desktop => visible, Mobile => nur wenn mobileOpen
+  // === Visibility: on mobile only when mobileOpen=true; on desktop always visible
+  const showAsDrawer = !isMdUp;
+  const visible = isMdUp || !!mobileOpen;
 
-  if (!visible) {
-    // Auf Mobile ohne Drawer bleibt Sidebar komplett ausgeblendet,
-    // damit der Content (Verträge) die volle Breite hat.
-    return null;
-  }
+  if (!visible) return null;
 
-  // === Styles für normalen Modus (Desktop) und Drawer (Mobile) ===
+  // === Styling (desktop vs drawer) ===
   const asideBase: React.CSSProperties = {
     width: 288,
     display: "flex",
@@ -89,7 +84,7 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Overlay nur im Drawer-Modus */}
+      {/* Overlay (mobile only) */}
       {showAsDrawer && (
         <div
           role="button"
@@ -102,7 +97,7 @@ export default function Sidebar({
       <aside style={{ ...asideBase, ...drawerStyles }}>
         {/* --- Navigation --- */}
         <nav style={{ padding: 16, overflowY: "auto", flex: 1 }}>
-          {/* Mobile: kleiner Kopf mit Schließen */}
+          {/* Mobile: small header with close button */}
           {!isMdUp && (
             <div
               style={{
@@ -112,7 +107,7 @@ export default function Sidebar({
                 marginBottom: 8,
               }}
             >
-              <strong style={{ letterSpacing: "-0.01em" }}>Kategorien</strong>
+              <strong style={{ letterSpacing: "-0.01em" }}>Categories</strong>
               <button
                 onClick={onCloseMobile}
                 style={{
@@ -123,7 +118,7 @@ export default function Sidebar({
                   cursor: "pointer",
                 }}
               >
-                Schließen
+                Close
               </button>
             </div>
           )}
@@ -138,18 +133,20 @@ export default function Sidebar({
                 letterSpacing: "0.06em",
               }}
             >
-              Kategorien
+              Categories
             </div>
           )}
 
           {visibleCategories.length === 0 ? (
-            <div style={{ fontSize: 12, color: "#6b7280" }}>Keine Kategorien gefunden.</div>
+            <div style={{ fontSize: 12, color: "#6b7280" }}>
+              No categories found.
+            </div>
           ) : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {visibleCategories.map((key) => {
                 const isActive = activeKey === key;
                 const count =
-                  key === "ALLE"
+                  key === "ALL"
                     ? contracts.length
                     : contracts.filter((c) => c.category === key).length;
 
@@ -178,10 +175,12 @@ export default function Sidebar({
                       }}
                       style={baseBtn}
                       onMouseEnter={(e) => {
-                        if (!isActive) e.currentTarget.style.background = "rgba(0,0,0,0.03)";
+                        if (!isActive)
+                          e.currentTarget.style.background = "rgba(0,0,0,0.03)";
                       }}
                       onMouseLeave={(e) => {
-                        if (!isActive) e.currentTarget.style.background = "transparent";
+                        if (!isActive)
+                          e.currentTarget.style.background = "transparent";
                       }}
                     >
                       <span>{key}</span>
@@ -209,14 +208,15 @@ export default function Sidebar({
                     padding: "8px 12px",
                     borderRadius: 10,
                     border: "1px solid transparent",
-                    background: activeKey === "ABOUT" ? "rgba(0,0,0,0.05)" : "transparent",
+                    background:
+                      activeKey === "ABOUT" ? "rgba(0,0,0,0.05)" : "transparent",
                     fontSize: 14,
                     color: activeKey === "ABOUT" ? "#111" : "#374151",
                     cursor: "pointer",
                     transition: "all .2s ease",
                   }}
                 >
-                  Über uns
+                  About us
                 </button>
               </li>
             </ul>
@@ -233,7 +233,7 @@ export default function Sidebar({
             textAlign: "center",
           }}
         >
-          Lokale Demo – keine echten Daten.
+          Local demo – no real data.
         </div>
       </aside>
     </>

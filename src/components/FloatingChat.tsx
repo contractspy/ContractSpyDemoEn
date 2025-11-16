@@ -8,7 +8,7 @@ export default function FloatingChat() {
   >([
     {
       role: "bot",
-      text: "Hi! Stell mir gern Fragen zu deinen Verträgen. (Feature in Arbeit)",
+      text: "Hi! Feel free to ask me about your contracts. (Feature in progress)",
     },
   ]);
 
@@ -17,15 +17,15 @@ export default function FloatingChat() {
     const text = input.trim();
     if (!text) return;
     setInput("");
-    // Nutzer-Nachricht
+    // User message
     setMessages((m) => [...m, { role: "user", text }]);
-    // Platzhalter-Antwort
+    // Placeholder reply
     setMessages((m) => [
       ...m,
       {
         role: "bot",
         text:
-          "Danke für deine Frage – die Chat-Funktion ist momentan noch in Entwicklung.",
+          "Thanks for your question — the chat feature is currently still in development.",
       },
     ]);
   };
@@ -34,7 +34,7 @@ export default function FloatingChat() {
     <>
       {/* Floating Button */}
       <button
-        aria-label="Chat öffnen"
+        aria-label="Open chat"
         onClick={() => setOpen(true)}
         style={{
           position: "fixed",
@@ -55,7 +55,7 @@ export default function FloatingChat() {
           justifyContent: "center",
         }}
       >
-        {/* Chat-Icon (sauberes SVG) */}
+        {/* Chat icon (clean SVG) */}
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
           <path
             d="M21 12c0 3.866-3.806 7-8.5 7-.814 0-1.6-.094-2.34-.27L4 20l1.62-3.24C4.61 15.57 4 13.86 4 12 4 8.134 7.806 5 12.5 5S21 8.134 21 12Z"
@@ -102,7 +102,7 @@ export default function FloatingChat() {
           >
             <div style={{ fontWeight: 600 }}>ContractSpy Chat</div>
             <button
-              aria-label="Chat schließen"
+              aria-label="Close chat"
               onClick={() => setOpen(false)}
               style={{
                 width: 34,
@@ -171,7 +171,7 @@ export default function FloatingChat() {
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Frag etwas zu Verträgen…"
+              placeholder="Ask something about contracts…"
               style={{
                 flex: 1,
                 padding: "10px 12px",
@@ -196,7 +196,7 @@ export default function FloatingChat() {
                 cursor: "pointer",
               }}
             >
-              Senden
+              Send
             </button>
           </form>
         </div>

@@ -11,9 +11,20 @@ export default function ContractCard({ contract }: Props) {
     startDate, endDate, noticePeriodDays, autoRenew, evaln,
   } = contract;
 
-  const cycleLabel = billingCycle === "monthly" ? "monatlich" : billingCycle === "yearly" ? "jährlich" : billingCycle;
+  const cycleLabel =
+    billingCycle === "monthly"
+      ? "monthly"
+      : billingCycle === "yearly"
+      ? "yearly"
+      : billingCycle;
+
   const runtimeMonths = monthsBetween(startDate ?? undefined, endDate ?? undefined);
-  const label = evaln.level === "green" ? "Gut" : evaln.level === "yellow" ? "Okay" : "Achtung";
+  const label =
+    evaln.level === "green"
+      ? "Good"
+      : evaln.level === "yellow"
+      ? "Okay"
+      : "Caution";
 
   return (
     <article className="card rounded-2xl border border-neutral-900 bg-neutral-900/40 backdrop-blur">
@@ -25,7 +36,7 @@ export default function ContractCard({ contract }: Props) {
           <div className="sub text-xs text-neutral-400">{partner}</div>
         </div>
         <div className="header-right">
-          <span className="traffic" aria-label={`Bewertung: ${evaln.level}`}>
+          <span className="traffic" aria-label={`Rating: ${evaln.level}`}>
             <span className={`dot ${evaln.level === "red" ? "on-red" : ""}`} />
             <span className={`dot ${evaln.level === "yellow" ? "on-yellow" : ""}`} />
             <span className={`dot ${evaln.level === "green" ? "on-green" : ""}`} />
@@ -34,33 +45,41 @@ export default function ContractCard({ contract }: Props) {
         </div>
       </header>
 
-      {/* Meta-Liste */}
+      {/* Meta list */}
       <ul className="meta text-sm text-neutral-300">
         <li>
           <span className="icon"><BadgeEuro className="size-4 text-neutral-400" /></span>
-          <span className="content tabular-nums">{formatCurrency(costPerCycle)} · {cycleLabel}</span>
+          <span className="content tabular-nums">
+            {formatCurrency(costPerCycle)} · {cycleLabel}
+          </span>
         </li>
         <li>
           <span className="icon"><CalendarClock className="size-4 text-neutral-400" /></span>
           <span className="content">
-            {startDate ? new Date(startDate).toLocaleDateString() : "–"} – {endDate ? new Date(endDate).toLocaleDateString() : "unbefristet"}
-            {runtimeMonths ? <span className="text-neutral-500"> · {runtimeMonths} Mon.</span> : null}
+            {startDate ? new Date(startDate).toLocaleDateString() : "–"} –{" "}
+            {endDate ? new Date(endDate).toLocaleDateString() : "open-ended"}
+            {runtimeMonths ? (
+              <span className="text-neutral-500"> · {runtimeMonths} mo.</span>
+            ) : null}
           </span>
         </li>
         <li>
           <span className="icon"><Hourglass className="size-4 text-neutral-400" /></span>
           <span className="content">
-            Kündigungsfrist: {noticePeriodDays} Tage{autoRenew ? " · Verlängert sich automatisch" : ""}
+            Cancellation period: {noticePeriodDays} days
+            {autoRenew ? " · Renews automatically" : ""}
           </span>
         </li>
 
-        {/* Notizen (einheitlich ausgerichtet) */}
+        {/* Notes */}
         {evaln.notes?.length ? (
           <li className="notes">
             <span className="icon"><ShieldCheck className="size-4 text-neutral-400" /></span>
             <ul className="note-list">
               {evaln.notes.map((n, i) => (
-                <li className={isNegative(n) ? "note-warn" : "note-good"} key={i}>{n}</li>
+                <li className={isNegative(n) ? "note-warn" : "note-good"} key={i}>
+                  {n}
+                </li>
               ))}
             </ul>
           </li>
@@ -78,7 +97,7 @@ function chipClass(level: Level) {
 
 function isNegative(text: string): boolean {
   const t = text.toLowerCase();
-  return /(lange|automatische|prüfen|lang)/.test(t);
+  return /(lange|automatische|prüfen|lang)/.test(t); // left unchanged, internal logic
 }
 
 function Logo({ url, name }: { url?: string; name: string }) {
@@ -89,6 +108,8 @@ function Logo({ url, name }: { url?: string; name: string }) {
       </div>
     );
   }
-  const initials = (name?.split(" ").map(p => p[0]).slice(0, 2).join("") || "?").toUpperCase();
+  const initials = (
+    name?.split(" ").map(p => p[0]).slice(0, 2).join("") || "?"
+  ).toUpperCase();
   return <div className="logo-box initials">{initials}</div>;
 }
