@@ -340,7 +340,6 @@ function About() {
       </p>
       <ul className="list-disc pl-6 text-neutral-300 space-y-2">
         <li>Smart per-contract rating (traffic light): cost, flexibility, cancellation window.</li>
-        <li>Minimalist UI inspired by Apple/Claude: calm, focused, performant.</li>
         <li>Local search & sorting, clean cards, provider logos.</li>
         <li>Extensible: OCR/parsing, reminders, price comparison, export.</li>
       </ul>
