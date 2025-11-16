@@ -97,7 +97,7 @@ function chipClass(level: Level) {
 
 function isNegative(text: string): boolean {
   const t = text.toLowerCase();
-  return /(lange|automatische|prüfen|lang)/.test(t); // left unchanged, internal logic
+  return /(long|automatic renewal|auto renewal|check|review|extended|lock-in|binding)/.test(t); // left unchanged, internal logic
 }
 
 function Logo({ url, name }: { url?: string; name: string }) {
