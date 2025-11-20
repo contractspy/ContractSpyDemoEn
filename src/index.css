@@ -279,3 +279,16 @@ main h1::marker { content: none; }
 
 /* Auto-responsives Grid: Karten umbrechen früh & flüssig */
 .auto-grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+
+footer {
+  width: 100vw !important;
+  text-align: center !important;
+  position: relative;
+  z-index: 9999; /* über Sidebar */
+}
+footer > div {
+  margin: 0 auto !important;
+  text-align: center !important;
+  justify-content: center !important;
+  display: block !important;
+}

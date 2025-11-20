@@ -2,13 +2,24 @@ import { CalendarClock, BadgeEuro, Hourglass, ShieldCheck } from "lucide-react";
 import { formatCurrency, monthsBetween } from "../utils/format";
 import type { EnrichedContract } from "../types/contract";
 
-interface Props { contract: EnrichedContract; }
+interface Props {
+  contract: EnrichedContract;
+  onSelect?: (contract: EnrichedContract) => void;
+}
 type Level = "green" | "yellow" | "red";
 
-export default function ContractCard({ contract }: Props) {
+export default function ContractCard({ contract, onSelect }: Props) {
   const {
-    title, partner, logoUrl, costPerCycle, billingCycle,
-    startDate, endDate, noticePeriodDays, autoRenew, evaln,
+    title,
+    partner,
+    logoUrl,
+    costPerCycle,
+    billingCycle,
+    startDate,
+    endDate,
+    noticePeriodDays,
+    autoRenew,
+    evaln,
   } = contract;
 
   const cycleLabel =
@@ -27,7 +38,10 @@ export default function ContractCard({ contract }: Props) {
       : "Caution";
 
   return (
-    <article className="card rounded-2xl border border-neutral-900 bg-neutral-900/40 backdrop-blur">
+    <article
+      className="card rounded-2xl border border-neutral-900 bg-neutral-900/40 backdrop-blur cursor-pointer hover:border-neutral-700 hover:bg-neutral-900/60 transition-colors"
+      onClick={() => onSelect?.(contract)}
+    >
       {/* Header */}
       <header className="card-header">
         <Logo url={logoUrl} name={partner} />
@@ -48,13 +62,17 @@ export default function ContractCard({ contract }: Props) {
       {/* Meta list */}
       <ul className="meta text-sm text-neutral-300">
         <li>
-          <span className="icon"><BadgeEuro className="size-4 text-neutral-400" /></span>
+          <span className="icon">
+            <BadgeEuro className="size-4 text-neutral-400" />
+          </span>
           <span className="content tabular-nums">
             {formatCurrency(costPerCycle)} · {cycleLabel}
           </span>
         </li>
         <li>
-          <span className="icon"><CalendarClock className="size-4 text-neutral-400" /></span>
+          <span className="icon">
+            <CalendarClock className="size-4 text-neutral-400" />
+          </span>
           <span className="content">
             {startDate ? new Date(startDate).toLocaleDateString() : "–"} –{" "}
             {endDate ? new Date(endDate).toLocaleDateString() : "open-ended"}
@@ -64,7 +82,9 @@ export default function ContractCard({ contract }: Props) {
           </span>
         </li>
         <li>
-          <span className="icon"><Hourglass className="size-4 text-neutral-400" /></span>
+          <span className="icon">
+            <Hourglass className="size-4 text-neutral-400" />
+          </span>
           <span className="content">
             Cancellation period: {noticePeriodDays} days
             {autoRenew ? " · Renews automatically" : ""}
@@ -74,7 +94,9 @@ export default function ContractCard({ contract }: Props) {
         {/* Notes */}
         {evaln.notes?.length ? (
           <li className="notes">
-            <span className="icon"><ShieldCheck className="size-4 text-neutral-400" /></span>
+            <span className="icon">
+              <ShieldCheck className="size-4 text-neutral-400" />
+            </span>
             <ul className="note-list">
               {evaln.notes.map((n, i) => (
                 <li className={isNegative(n) ? "note-warn" : "note-good"} key={i}>
@@ -97,7 +119,9 @@ function chipClass(level: Level) {
 
 function isNegative(text: string): boolean {
   const t = text.toLowerCase();
-  return /(long|automatic renewal|auto renewal|check|review|extended|lock-in|binding)/.test(t); // left unchanged, internal logic
+  return /(long|automatic renewal|auto renewal|check|review|extended|lock-in|binding)/.test(
+    t
+  );
 }
 
 function Logo({ url, name }: { url?: string; name: string }) {
@@ -109,7 +133,7 @@ function Logo({ url, name }: { url?: string; name: string }) {
     );
   }
   const initials = (
-    name?.split(" ").map(p => p[0]).slice(0, 2).join("") || "?"
+    name?.split(" ").map((p) => p[0]).slice(0, 2).join("") || "?"
   ).toUpperCase();
   return <div className="logo-box initials">{initials}</div>;
 }

@@ -11,10 +11,17 @@ export default function App() {
   const [query, setQuery] = useState<string>("");
   const [activeKey, setActiveKey] = useState<string>("ALL");
   const [sortKey, setSortKey] =
-    useState<"score-desc" | "cost-asc" | "cost-desc" | "term-asc" | "term-desc">("score-desc");
+    useState<"score-desc" | "cost-asc" | "cost-desc" | "term-asc" | "term-desc">(
+      "score-desc"
+    );
 
   // Mobile drawer state for sidebar
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Selected contract for simple, mocked detail view
+  const [selectedContract, setSelectedContract] = useState<EnrichedContract | null>(
+    null
+  );
 
   // Breakpoint detection (md = 768px)
   const [isMdUp, setIsMdUp] = useState<boolean>(() =>
@@ -88,6 +95,7 @@ export default function App() {
   }, [activeKey, query, sortKey]);
 
   const aboutSelected = activeKey === "ABOUT";
+  const showElectricityDetail = selectedContract?.id === "c7"; // Stromvertrag
 
   return (
     <div
@@ -146,9 +154,9 @@ export default function App() {
                 xmlns="http://www.w3.org/2000/svg"
                 aria-hidden="true"
               >
-                <path d="M4 6h16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/>
-                <path d="M4 12h16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/>
-                <path d="M4 18h16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/>
+                <path d="M4 6h16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                <path d="M4 12h16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                <path d="M4 18h16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
               </svg>
             </button>
           )}
@@ -255,76 +263,89 @@ export default function App() {
       </header>
 
       {/* ===== Layout: Sidebar + Content ===== */}
-      <div className="app-shell" style={{ flex: 1 }}>
+      <div className="app-shell" style={{ flex: 1, display: "flex" }}>
         <Sidebar
           categories={categories}
           activeKey={activeKey}
-          onSelect={setActiveKey}
+          onSelect={(key) => {
+            setActiveKey(key);
+            setSelectedContract(null); // reset detail view when changing section
+          }}
           query={query}
           onQuery={setQuery}
-          mobileOpen={mobileOpen}            // 👉 drawer visible on mobile
-          onCloseMobile={() => setMobileOpen(false)} // 👉 close
+          mobileOpen={mobileOpen}
+          onCloseMobile={() => setMobileOpen(false)}
         />
 
         <main className="flex-1 p-6 md:p-8">
           {!aboutSelected ? (
-            <div className="max-w-7xl mx-auto">
-              <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <h2
-                  className="text-2xl md:text-3xl font-semibold tracking-tight"
-                  style={{ margin: 0 }}
-                >
-                  My contracts{activeKey !== "ALL" && ` · ${activeKey}`}
-                </h2>
-                <div className="flex items-center gap-2">
-                  <select
-                    value={sortKey}
-                    onChange={(e) =>
-                      setSortKey(e.target.value as typeof sortKey)
-                    }
-                    className="bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-700"
+            showElectricityDetail ? (
+              <ElectricityDetail onBack={() => setSelectedContract(null)} />
+            ) : (
+              <div className="max-w-7xl mx-auto">
+                <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <h2
+                    className="text-2xl md:text-3xl font-semibold tracking-tight"
+                    style={{ margin: 0 }}
                   >
-                    <option value="score-desc">Sort: Rating (↓)</option>
-                    <option value="cost-asc">Cost (↑)</option>
-                    <option value="cost-desc">Cost (↓)</option>
-                    <option value="term-asc">Term end (↑)</option>
-                    <option value="term-desc">Term end (↓)</option>
-                  </select>
+                    My contracts{activeKey !== "ALL" && ` · ${activeKey}`}
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={sortKey}
+                      onChange={(e) =>
+                        setSortKey(e.target.value as typeof sortKey)
+                      }
+                      className="bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-700"
+                    >
+                      <option value="score-desc">Sort: Rating (↓)</option>
+                      <option value="cost-asc">Cost (↑)</option>
+                      <option value="cost-desc">Cost (↓)</option>
+                      <option value="term-asc">Term end (↑)</option>
+                      <option value="term-desc">Term end (↓)</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
 
-              {filtered.length === 0 ? (
-                <div className="text-neutral-400 text-sm">
-                  No contracts found. Adjust search/category.
-                </div>
-              ) : (
-                <section className="grid auto-grid gap-4 md:gap-6">
-                  {filtered.map((c) => (
-                    <ContractCard key={c.id} contract={c} />
-                  ))}
-                </section>
-              )}
-            </div>
+                {filtered.length === 0 ? (
+                  <div className="text-neutral-400 text-sm">
+                    No contracts found. Adjust search/category.
+                  </div>
+                ) : (
+                  <section className="grid auto-grid gap-4 md:gap-6">
+                    {filtered.map((c) => (
+                      <ContractCard
+                        key={c.id}
+                        contract={c}
+                        onSelect={(contract) => {
+                          // Only show detail page for the electricity contract
+                          if (contract.id === "c7") {
+                            setSelectedContract(contract);
+                          }
+                        }}
+                      />
+                    ))}
+                  </section>
+                )}
+              </div>
+            )
           ) : (
             <About />
           )}
         </main>
-      </div>
-      {/* ===== Layout: Sidebar + Content ===== */}
-      <div className="app-shell" style={{ flex: 1 }}>
-        {/* ... your existing layout ... */}
       </div>
 
       {/* Floating chat always visible */}
       <FloatingChat />
 
       {/* ===== Footer ===== */}
-      <footer className="px-6 py-4 text-xs text-neutral-500 border-t border-neutral-900">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <span> {new Date().getFullYear()} ContractSpy – Contract management - University Project Demo</span>
-          <span>Build v0.1</span>
-        </div>
-      </footer>
+     <footer className="px-6 py-4 text-xs text-neutral-500 border-t border-neutral-900 w-full text-center">
+      <div>
+        {new Date().getFullYear()} ContractSpy – Contract management – University Project Demo
+      </div>
+      <div>Build v0.1</div>
+    </footer>
+
     </div>
   );
 }
@@ -336,13 +357,180 @@ function About() {
       <p className="text-neutral-300 leading-relaxed mb-4">
         ContractSpy is a lean B2C tool that lets you securely organize your contracts
         in one place. Upload PDFs, categorize them, filter by criteria, and keep an eye
-        on terms & cancellation periods.
+        on terms &amp; cancellation periods.
       </p>
       <ul className="list-disc pl-6 text-neutral-300 space-y-2">
-        <li>Smart per-contract rating (traffic light): cost, flexibility, cancellation window.</li>
-        <li>Local search & sorting, clean cards, provider logos.</li>
+        <li>
+          Smart per-contract rating (traffic light): cost, flexibility, cancellation
+          window.
+        </li>
+        <li>Local search &amp; sorting, clean cards, provider logos.</li>
         <li>Extensible: OCR/parsing, reminders, price comparison, export.</li>
       </ul>
     </div>
   );
 }
+
+/** ===== Mocked detail view for the electricity contract (c7) ===== */
+
+function ElectricityDetail({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="max-w-3xl mx-auto space-y-6">
+      {/* Back button */}
+      <button
+        onClick={onBack}
+        className="inline-flex items-center gap-1 text-xs rounded-full border border-neutral-300/60 dark:border-neutral-700/80 px-3 py-1 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800/80 transition-colors"
+      >
+        <span className="text-sm">←</span>
+        Back to all contracts
+      </button>
+
+      {/* Header */}
+      <header className="space-y-2">
+        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
+          Green Electricity Home 12 – Contract Overview
+        </h1>
+        <p className="text-sm md:text-base text-neutral-600 dark:text-neutral-300 leading-relaxed max-w-2xl">
+          This page provides a detailed analysis of the Green Electricity Home 12
+          contract. It summarises the central economic conditions and highlights
+          contract clauses that offer protection as well as clauses that may create
+          obligations or risks.
+        </p>
+      </header>
+
+      {/* Key facts */}
+      <section>
+        <h2 className="text-lg font-semibold mb-2">Key facts</h2>
+        <ul className="list-disc pl-5 text-sm text-neutral-700 dark:text-neutral-300 space-y-1.5">
+          <li>Green electricity tariff with a 12-month price guarantee on the base price.</li>
+          <li>Initial contract term of 12 months with automatic 12-month renewal.</li>
+          <li>Written cancellation required at least 60 days before the end of the term.</li>
+          <li>
+            Governmental price components (taxes, levies, grid fees) may be adjusted
+            during the term and can increase the total bill.
+          </li>
+        </ul>
+      </section>
+
+      {/* Positive clauses – quoted text + Bewertung */}
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+          Positive clauses
+        </h2>
+
+        <div className="space-y-3 text-sm">
+          <div className="border-l-4 border-emerald-500/80 pl-4 py-2 rounded-sm bg-emerald-50/60 dark:bg-transparent">
+            <p className="text-neutral-800 dark:text-emerald-100">
+              “The supplier guarantees a fixed energy price for the initial twelve (12)
+             -month contract period. During this period, the agreed base price per
+              kilowatt hour and the basic monthly fee shall not be increased.”
+            </p>
+          </div>
+          <p className="text-xs text-neutral-600 dark:text-neutral-300 ml-1">
+            ➜ The contract contains a clear price guarantee for the first year. Your
+            base price and fixed monthly fee remain stable, which makes budgeting
+            easier and protects you against short-term price spikes on the market.
+          </p>
+
+          <div className="border-l-4 border-emerald-500/80 pl-4 py-2 rounded-sm bg-emerald-50/60 dark:bg-transparent">
+            <p className="text-neutral-800 dark:text-emerald-100">
+              “The electricity supplied under this tariff originates 100% from
+              certified renewable energy sources. The supplier undertakes to purchase
+              electricity exclusively from plants that meet the applicable
+              certification standards.”
+            </p>
+          </div>
+          <p className="text-xs text-neutral-600 dark:text-neutral-300 ml-1">
+            ➜ The contract explicitly commits to certified green electricity. This is
+            positive if environmental aspects are important to you and reduces the risk
+            of misleading ‘green’ marketing wording.
+          </p>
+        </div>
+      </section>
+
+      {/* Critical clauses – quoted text + Bewertung */}
+      <section className="space-y-3">
+        <h2 className="text-lg font-semibold text-red-600 dark:text-red-400">
+          Critical clauses
+        </h2>
+
+        <div className="space-y-3 text-sm">
+          <div className="border-l-4 border-red-500/80 pl-4 py-2 rounded-sm bg-red-50/70 dark:bg-transparent">
+            <p className="text-neutral-800 dark:text-red-100">
+              “The contract shall be automatically renewed for an additional twelve
+              (12)-month period if it is not terminated in writing by either party no
+              later than sixty (60) days before the end of the current contract term.”
+            </p>
+          </div>
+          <p className="text-xs text-neutral-600 dark:text-neutral-300 ml-1">
+            ⚠️ The automatic 12-month renewal combined with a 60-day notice period
+            creates a long binding period. If you miss the deadline, you are tied to
+            the tariff for another full year, even if more favourable offers become
+            available.
+          </p>
+
+          <div className="border-l-4 border-red-500/80 pl-4 py-2 rounded-sm bg-red-50/70 dark:bg-transparent">
+            <p className="text-neutral-800 dark:text-red-100">
+              “Price components beyond the supplier&apos;s control, in particular taxes,
+              levies, surcharges and grid fees, may be adjusted at any time to the
+              extent that the underlying legal basis changes. Such adjustments shall
+              entitle the supplier to increase the total price accordingly.”
+            </p>
+          </div>
+          <p className="text-xs text-neutral-600 dark:text-neutral-300 ml-1">
+            ⚠️ Although the base price is guaranteed, the total amount you pay can
+            still rise if taxes or levies go up. The clause is common but clearly
+            shifts the risk of regulatory increases to you as the customer.
+          </p>
+
+          <div className="border-l-4 border-red-500/80 pl-4 py-2 rounded-sm bg-red-50/70 dark:bg-transparent">
+            <p className="text-neutral-800 dark:text-red-100">
+              “The supplier is entitled to transfer this contract, including all rights
+              and obligations, to another energy provider as part of a portfolio or
+              business transfer, provided that the contractual conditions are not
+              materially worsened for the customer.”
+            </p>
+          </div>
+          <p className="text-xs text-neutral-600 dark:text-neutral-300 ml-1">
+            ⚠️ Your contractual partner may change without you actively agreeing to a
+            new contract. Even if conditions must not be ‘materially’ worsened, the
+            term leaves room for interpretation and you should monitor any changes in
+            service quality or communication.
+          </p>
+        </div>
+      </section>
+
+      {/* Unterstützende Einordnung */}
+      <section>
+        <h2 className="text-lg font-semibold mb-2">
+          Overall assessment and recommendations
+        </h2>
+        <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed mb-2">
+          The tariff combines a solid introductory price guarantee and certified green
+          electricity with comparatively strict renewal conditions. Financially, the
+          first contract year is predictable, but the long notice period and
+          automatic renewal mean you should actively calendar the cancellation date if
+          you want to keep flexibility.
+        </p>
+        <ul className="list-disc pl-5 text-sm text-neutral-700 dark:text-neutral-300 space-y-1.5">
+          <li>
+            Make a note of the latest possible cancellation date (60 days before the
+            end of the 12-month term) and check available market offers shortly before
+            that.
+          </li>
+          <li>
+            If your consumption or living situation is likely to change in the near
+            future, consider whether the long renewal period fits your planning.
+          </li>
+          <li>
+            Keep an eye on communications about changes to taxes and levies, as these
+            may increase your total price despite the base price guarantee.
+          </li>
+        </ul>
+      </section>
+    </div>
+  );
+}
+
+
+
